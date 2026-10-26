@@ -2,6 +2,8 @@
 
 Search page backed by the astrx-suite torrent index — the **Torrent search** module of [AstrX](https://github.com/Vxmdzhb/astrx).
 
+![Torrent search results](docs/screenshot.png)
+
 - Module key: `torrentsearch` (switch it on in the site's `resources/config/Modules.config.php`)
 - Pages: `torrent_search`
 - Requires: `astrx/cms`, `astrx/framework`, `astrx/library`
