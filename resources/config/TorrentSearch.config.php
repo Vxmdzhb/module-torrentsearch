@@ -2,18 +2,17 @@
 declare(strict_types=1);
 
 /**
- * Torrent search backend — config. The section key 'TorrentSearchConfig' matches
- * the holder's short class name; there is no TorrentSearchConfig.config.php, so
- * ModuleLoader falls back to this file (named after the parent namespace segment
- * 'TorrentSearch'), exactly like BotTrapConfig → BotTrap.config.php.
+ * Torrent search backend config. The section 'TorrentSearchConfig' is named
+ * after the class; there is no TorrentSearchConfig.config.php, so ModuleLoader
+ * falls back to this file, named after the parent namespace segment (like
+ * BotTrapConfig → BotTrap.config.php).
  *
- * base_url MUST be the loopback torrentds `search` server. Only the scheme+host
- * from here are ever used to build the request; the user-supplied query, page
- * and (validated hex) infohash are appended safely. A non-http(s) value is
- * rejected to the localhost default. The same origin is used for the user-facing
- * `.torrent` link — magnet links (client-side) work regardless of where base_url
- * points; the `.torrent` link is only reachable if base_url is reachable by the
- * visitor (loopback by default).
+ * base_url must be the local torrentds search server. Only its scheme and
+ * host are used; the user's query, page and (validated hex) infohash are
+ * appended safely. Anything that isn't http(s) is replaced by the localhost
+ * default. The same origin is used for the .torrent download link, which only
+ * works if visitors can reach base_url (it's loopback by default); magnet
+ * links work regardless.
  */
 return [
     'TorrentSearchConfig' => [
