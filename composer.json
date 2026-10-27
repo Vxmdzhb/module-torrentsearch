@@ -1,6 +1,7 @@
 {
     "name": "astrx/module-torrentsearch",
     "description": "Search page backed by the astrx-suite torrent index",
+    "license": "LicenseRef-DoWhatever",
     "type": "astrx-module",
     "keywords": [
         "astrx",
