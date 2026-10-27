@@ -30,4 +30,13 @@ return [
     'torrentsearch.last_seen'    => 'Last seen',
     'torrentsearch.file_list'    => 'Files in this torrent',
     'torrentsearch.not_found'    => 'That torrent is not in the index.',
+    'torrentsearch.tab' => 'Torrents',
+    'torrentsearch.found'        => 'Found {when}',
+    'torrentsearch.age.today'    => 'today',
+    'torrentsearch.age.yesterday' => 'yesterday',
+    'torrentsearch.age.days'     => '{n} days ago',
+    'torrentsearch.age.months'   => '{n} months ago',
+    'torrentsearch.age.years'    => '{n} years ago',
+    'torrentsearch.more_files'   => 'more files',
+    'torrentsearch.infohash'     => 'Infohash',
 ];

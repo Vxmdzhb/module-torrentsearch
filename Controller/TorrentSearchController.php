@@ -11,6 +11,8 @@ use AstrX\Result\DiagnosticsCollector;
 use AstrX\Result\Result;
 use AstrX\Routing\UrlGenerator;
 use AstrX\Template\TemplateVars;
+use AstrX\TorrentSearch\TorrentAge;
+use AstrX\TorrentSearch\TorrentHits;
 use AstrX\TorrentSearch\TorrentSearchClient;
 use AstrX\Kernel\AbstractController;
 use AstrX\News\NewsPermission;
@@ -48,6 +50,7 @@ final class TorrentSearchController extends AbstractController
         private readonly Translator             $t,
         private readonly UrlGenerator           $urlGen,
         private readonly TorrentSearchClient    $client,
+        private readonly TorrentAge             $age,
     ) {
         parent::__construct($collector);
     }
@@ -99,21 +102,8 @@ final class TorrentSearchController extends AbstractController
                 $page     = $resp['page'];
                 $pageSize = $resp['page_size'];
                 foreach ($resp['results'] as $r) {
-                    $results[] = [
-                        'name'        => $r['name'],
-                        'size'        => $r['size'],
-                        'file_count'  => $r['file_count'],
-                        'seen_count'  => $r['seen_count'],
-                        'category'    => $r['category'],
-                        'magnet'      => $r['magnet'],
-                        'torrent_url' => $r['torrent_url'],
-                        'has_torrent' => $r['torrent_url'] !== '',
-                        'has_swarm'   => $r['has_swarm'],
-                        'seeders'     => $r['seeders'],
-                        'leechers'    => $r['leechers'],
-                        'swarm'       => $r['swarm'],
-                        'detail_url'  => $this->urlGen->toPage($slug, ['ih' => $r['infohash']]),
-                    ];
+                    $detail    = $this->urlGen->toPage($slug, ['ih' => $r['infohash']]);
+                    $results[] = TorrentHits::hit($r, $detail, $this->t, $this->age)->view();
                 }
                 $last = max(1, intdiv($total + $pageSize - 1, $pageSize));
                 if ($page > 1) {
@@ -167,6 +157,7 @@ final class TorrentSearchController extends AbstractController
             $this->ctx->setShared('d_seen_count',  $d['seen_count']);
             $this->ctx->setShared('d_category',    $d['category']);
             $this->ctx->setShared('d_first_seen',  $d['first_seen']);
+            $this->ctx->setShared('d_found',       $this->age->found($d['first_seen_ts']));
             $this->ctx->setShared('d_last_seen',   $d['last_seen']);
             $this->ctx->setShared('d_magnet',      $d['magnet']);
             $this->ctx->setShared('d_torrent_url', $d['torrent_url']);
@@ -200,6 +191,8 @@ final class TorrentSearchController extends AbstractController
             'lbl_swarm'       => 'torrentsearch.swarm',
             'lbl_not_found'   => 'torrentsearch.not_found',
             'lbl_file_list'   => 'torrentsearch.file_list',
+            'lbl_more_files'  => 'torrentsearch.more_files',
+            'lbl_infohash'    => 'torrentsearch.infohash',
         ] as $ctxKey => $tKey) {
             $this->ctx->set($ctxKey, $this->t->t($tKey), ContextScope::SHARED);
         }

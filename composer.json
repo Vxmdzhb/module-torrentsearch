@@ -13,7 +13,8 @@
         "php": ">=8.4",
         "astrx/cms": "self.version",
         "astrx/framework": "self.version",
-        "astrx/library": "self.version"
+        "astrx/library": "self.version",
+        "astrx/module-search": "self.version"
     },
     "autoload": {
         "psr-4": {
@@ -32,6 +33,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/Vxmdzhb/library"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/Vxmdzhb/module-search"
         }
     ]
 }

@@ -1,8 +1,10 @@
 <div id="torrent_search">
     <style>
-    /* Self-contained, mirroring web_search.html: transparent fills,
-       currentColor borders, px spacing, no rem/em, no border-radius. */
-    #torrent_search{--ts-border:currentColor;background:transparent;color:inherit;}
+    /* Self-contained: transparent fills, currentColor borders, px spacing, no
+       rem/em, no border-radius. The same two accents as the other search pages
+       colour the RESULTS only: names blue, facts and sizes green. Results are
+       laid out like BTDigg's: the name, the first files, then the facts. */
+    #torrent_search{--ts-border:currentColor;--ts-accent:#5b9bff;--ts-url:#54b054;--ts-file:#c9a227;background:transparent;color:inherit;}
     #torrent_search a{text-decoration:none;color:inherit;}
     #torrent_search a:hover{text-decoration:underline;}
     .search-header{border-bottom:1px solid var(--ts-border);margin-bottom:8px;padding-bottom:5px;}
@@ -15,17 +17,29 @@
     .search-form button:hover{text-decoration:underline;}
     .search-count{font-style:italic;margin:8px 0;}
     .search-empty,.search-unavailable{font-style:italic;margin:8px 0;}
-    .search-result{padding:6px 0;border-bottom:1px dashed var(--ts-border);}
-    .search-result .search-title{margin:1px 0;}
-    .search-result .search-meta{font-size:12px;opacity:.7;}
-    .search-result .search-links{font-size:12px;margin:2px 0 0;}
-    .search-result .search-links a{border:1px solid var(--ts-border);padding:1px 8px;margin-right:8px;}
+    .search-result{padding:7px 0;border-bottom:1px dashed var(--ts-border);}
+    #torrent_search .search-result .search-title a{color:var(--ts-accent);font-size:1.1em;}
+    .search-files{margin:3px 0 2px 2px;padding:0;list-style:none;font-size:13px;}
+    .search-files li{margin:1px 0;word-wrap:break-word;}
+    .search-files li:before{content:"\25B8 ";color:var(--ts-file);}
+    .file-size{color:var(--ts-url);font-size:12px;margin-left:6px;}
+    .file-more{font-style:italic;font-size:12px;}
+    .search-meta{display:block;font-size:12px;color:var(--ts-url);margin-top:2px;}
+    .search-links{font-size:12px;margin-top:3px;}
+    #torrent_search .search-links a,#torrent_search .detail-links a{border:1px solid var(--ts-accent);color:var(--ts-accent);padding:0 8px;margin-right:6px;}
     .search-pager{margin:10px 0;display:flex;gap:14px;}
-    .search-pager a{border:1px solid var(--ts-border);padding:2px 10px;}
-    .torrent-detail dt{font-weight:bold;margin-top:6px;}
-    .torrent-detail .file-list{margin:6px 0;padding-left:18px;}
-    .torrent-detail .file-list li{word-wrap:break-word;}
-    .torrent-detail .detail-links a{border:1px solid var(--ts-border);padding:1px 8px;margin-right:8px;}
+    #torrent_search .search-pager a{border:1px solid var(--ts-accent);color:var(--ts-accent);padding:2px 10px;}
+    .torrent-detail h2{margin:6px 0;color:var(--ts-accent);word-wrap:break-word;}
+    .torrent-info{border-collapse:collapse;margin:6px 0 10px;}
+    /* The theme lays tables out with table-layout:fixed, so label and size
+       columns get explicit widths. */
+    .torrent-info th{text-align:left;padding:2px 14px 2px 0;font-weight:normal;opacity:.8;width:9em;}
+    .torrent-info td{padding:2px 0;color:var(--ts-url);word-break:break-all;}
+    .detail-links{margin:8px 0 12px;}
+    .file-table{border-collapse:collapse;width:100%;font-size:13px;}
+    .file-table td{padding:2px 6px 2px 0;border-bottom:1px dotted var(--ts-border);word-wrap:break-word;}
+    .file-table td:first-child:before{content:"\25B8 ";color:var(--ts-file);}
+    .file-table td.file-size{text-align:right;width:7em;}
     </style>
 
     <div class="search-header"><h1>{{lbl_heading}}</h1></div>
@@ -48,19 +62,16 @@
             {{^has_results}}<p class="search-empty">{{lbl_no_results}}</p>{{/has_results}}
             {{#torrent_results}}
             <div class="search-result">
-                <div class="search-title"><a href="{{detail_url}}" rel="nofollow">{{name}}</a></div>
-                <span class="search-meta">{{lbl_size}}: {{size}} &middot; {{lbl_files}}: {{file_count}} &middot; {{lbl_seen}}: {{seen_count}}{{#has_swarm}} &middot; {{lbl_swarm}}: {{/has_swarm}}{{swarm}}{{#category}} &middot; {{/category}}{{category}}</span>
-                <div class="search-links">
-                    <a href="{{magnet}}" rel="nofollow">{{lbl_magnet}}</a>
-                    <a href="{{torrent_url}}" rel="noopener noreferrer nofollow" target="_blank">{{lbl_torrent}}</a>
-                    <a href="{{detail_url}}" rel="nofollow">{{lbl_details}}</a>
-                </div>
+                <div class="search-title"><a href="{{url}}" rel="{{rel}}">{{title}}</a></div>
+                <ul class="search-files">{{#files}}<li>{{path}}<span class="file-size">{{size}}</span></li>{{/files}}{{#more_files}}<li class="file-more">+ {{count}} {{lbl_more_files}}</li>{{/more_files}}</ul>
+                {{#meta}}<span class="search-meta">{{text}}</span>{{/meta}}
+                <div class="search-links">{{#links}}<a href="{{url}}" rel="nofollow">{{label}}</a>{{/links}}</div>
             </div>
             {{/torrent_results}}
             {{#has_results}}
             <nav class="search-pager">
-                {{#has_prev}}<a href="{{prev_url}}" rel="nofollow">{{lbl_prev}}</a>{{/has_prev}}
-                {{#has_next}}<a href="{{next_url}}" rel="nofollow">{{lbl_next}}</a>{{/has_next}}
+                {{#has_prev}}<a href="{{prev_url}}" rel="nofollow">&larr; {{lbl_prev}}</a>{{/has_prev}}
+                {{#has_next}}<a href="{{next_url}}" rel="nofollow">{{lbl_next}} &rarr;</a>{{/has_next}}
             </nav>
             {{/has_results}}
         {{/backend_unavailable}}
@@ -77,23 +88,24 @@
         {{#detail_found}}
         <div class="torrent-detail">
             <h2>{{d_name}}</h2>
-            <dl>
-                <dt>{{lbl_size}}</dt><dd>{{d_size}}</dd>
-                <dt>{{lbl_files}}</dt><dd>{{d_file_count}}</dd>
-                <dt>{{lbl_seen}}</dt><dd>{{d_seen_count}}</dd>
-                {{#d_category}}<dt>{{lbl_category}}</dt><dd>{{d_category}}</dd>{{/d_category}}
-                {{#d_first_seen}}<dt>{{lbl_first_seen}}</dt><dd>{{d_first_seen}}</dd>{{/d_first_seen}}
-                {{#d_last_seen}}<dt>{{lbl_last_seen}}</dt><dd>{{d_last_seen}}</dd>{{/d_last_seen}}
-            </dl>
+            <table class="torrent-info">
+                <tr><th>{{lbl_size}}</th><td>{{d_size}}</td></tr>
+                <tr><th>{{lbl_files}}</th><td>{{d_file_count}}</td></tr>
+                {{#d_found}}<tr><th>{{lbl_first_seen}}</th><td>{{d_first_seen}} ({{d_found}})</td></tr>{{/d_found}}
+                {{#d_last_seen}}<tr><th>{{lbl_last_seen}}</th><td>{{d_last_seen}}</td></tr>{{/d_last_seen}}
+                <tr><th>{{lbl_seen}}</th><td>{{d_seen_count}}</td></tr>
+                {{#d_category}}<tr><th>{{lbl_category}}</th><td>{{d_category}}</td></tr>{{/d_category}}
+                <tr><th>{{lbl_infohash}}</th><td>{{d_infohash}}</td></tr>
+            </table>
             <p class="detail-links">
                 <a href="{{d_magnet}}" rel="nofollow">{{lbl_magnet}}</a>
                 {{#d_has_torrent}}<a href="{{d_torrent_url}}" rel="noopener noreferrer nofollow" target="_blank">{{lbl_torrent}}</a>{{/d_has_torrent}}
             </p>
             <p><strong>{{lbl_file_list}}</strong></p>
             {{#d_has_files}}
-            <ul class="file-list">
-                {{#d_files}}<li>{{path}} <span class="search-meta">({{size}})</span></li>{{/d_files}}
-            </ul>
+            <table class="file-table">
+                {{#d_files}}<tr><td>{{path}}</td><td class="file-size">{{size}}</td></tr>{{/d_files}}
+            </table>
             {{/d_has_files}}
             {{^d_has_files}}<p class="search-empty">{{lbl_no_results}}</p>{{/d_has_files}}
         </div>

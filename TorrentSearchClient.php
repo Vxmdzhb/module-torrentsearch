@@ -39,6 +39,9 @@ namespace AstrX\TorrentSearch;
  */
 final class TorrentSearchClient
 {
+    /** How many files each search result lists. */
+    public const int PREVIEW_FILES = 5;
+
     public function __construct(private readonly TorrentSearchConfig $config) {}
 
     /**
@@ -53,7 +56,8 @@ final class TorrentSearchClient
      *     infohash:string, name:string, size:string, size_bytes:int,
      *     file_count:int, seen_count:int, category:string,
      *     magnet:string, torrent_url:string, has_swarm:bool,
-     *     seeders:int, leechers:int, swarm:string
+     *     seeders:int, leechers:int, swarm:string,
+ *     files:list<array{path:string, size:string, size_bytes:int}>, first_seen_ts:int
      *   }>
      * }
      */
@@ -63,8 +67,10 @@ final class TorrentSearchClient
         $perPage  = $this->config->perPage();
         $offset   = ($page - 1) * $perPage;
 
+        // files=N asks the engine for each result's first files and when it
+        // was first seen; an older engine ignores it and the list stays empty.
         $raw = $this->fetch('/api/search?q=' . rawurlencode($query)
-            . '&limit=' . $perPage . '&offset=' . $offset);
+            . '&limit=' . $perPage . '&offset=' . $offset . '&files=' . self::PREVIEW_FILES);
         if ($raw === null) {
             return $this->unavailable($page, $perPage);
         }
@@ -93,7 +99,7 @@ final class TorrentSearchClient
      *   ok: bool, found: bool,
      *   infohash:string, name:string, size:string, size_bytes:int,
      *   file_count:int, seen_count:int, category:string,
-     *   first_seen:string, last_seen:string,
+     *   first_seen:string, first_seen_ts:int, last_seen:string,
      *   magnet:string, torrent_url:string, has_torrent:bool,
      *   files: list<array{path:string, size:string, size_bytes:int}>
      * }
@@ -136,6 +142,7 @@ final class TorrentSearchClient
             'seen_count'  => max(0, self::i($data['seen_count'] ?? null)),
             'category'    => self::cleanText(self::s($data['category'] ?? null)),
             'first_seen'  => self::humanTime($data['first_seen'] ?? null),
+            'first_seen_ts' => max(0, self::i($data['first_seen'] ?? null)),
             'last_seen'   => self::humanTime($data['last_seen'] ?? null),
             'magnet'      => self::magnet($ihOut, $name),
             'torrent_url' => $this->torrentUrl($ihOut, self::bool($data['has_torrent'] ?? null)),
@@ -169,7 +176,7 @@ final class TorrentSearchClient
     /**
      * Project the untrusted JSON `results` array onto the sanitised view model.
      *
-     * @return list<array{infohash:string, name:string, size:string, size_bytes:int, file_count:int, seen_count:int, category:string, magnet:string, torrent_url:string, has_swarm:bool, seeders:int, leechers:int, swarm:string}>
+     * @return list<array{infohash:string, name:string, size:string, size_bytes:int, file_count:int, seen_count:int, category:string, magnet:string, torrent_url:string, has_swarm:bool, seeders:int, leechers:int, swarm:string, files:list<array{path:string, size:string, size_bytes:int}>, first_seen_ts:int}>
      */
     private function mapResults(mixed $rows): array
     {
@@ -212,6 +219,9 @@ final class TorrentSearchClient
                 // so these numbers must be emitted at loop level via this field;
                 // '' when the engine reported no swarm so the clause collapses.
                 'swarm'       => $hasSwarm ? ($seeders . '/' . $leechers) : '',
+                // Only when the engine sent them (files=N); else [] and 0.
+                'files'       => $this->mapFiles($row['files'] ?? null),
+                'first_seen_ts' => max(0, self::i($row['first_seen'] ?? null)),
             ];
         }
         return $out;
@@ -248,7 +258,7 @@ final class TorrentSearchClient
     }
 
     /**
-     * @return array{ok:bool,total:int,page:int,page_size:int,results:list<array{infohash:string, name:string, size:string, size_bytes:int, file_count:int, seen_count:int, category:string, magnet:string, torrent_url:string, has_swarm:bool, seeders:int, leechers:int, swarm:string}>}
+     * @return array{ok:bool,total:int,page:int,page_size:int,results:list<array{infohash:string, name:string, size:string, size_bytes:int, file_count:int, seen_count:int, category:string, magnet:string, torrent_url:string, has_swarm:bool, seeders:int, leechers:int, swarm:string, files:list<array{path:string, size:string, size_bytes:int}>, first_seen_ts:int}>}
      */
     private function unavailable(int $page, int $perPage): array
     {
@@ -262,7 +272,7 @@ final class TorrentSearchClient
     }
 
     /**
-     * @return array{ok:bool, found:bool, infohash:string, name:string, size:string, size_bytes:int, file_count:int, seen_count:int, category:string, first_seen:string, last_seen:string, magnet:string, torrent_url:string, has_torrent:bool, files:list<array{path:string, size:string, size_bytes:int}>}
+     * @return array{ok:bool, found:bool, infohash:string, name:string, size:string, size_bytes:int, file_count:int, seen_count:int, category:string, first_seen:string, first_seen_ts:int, last_seen:string, magnet:string, torrent_url:string, has_torrent:bool, files:list<array{path:string, size:string, size_bytes:int}>}
      */
     private function detailUnavailable(bool $reachable): array
     {
@@ -277,6 +287,7 @@ final class TorrentSearchClient
             'seen_count'  => 0,
             'category'    => '',
             'first_seen'  => '',
+            'first_seen_ts' => 0,
             'last_seen'   => '',
             'magnet'      => '',
             'torrent_url' => '',

@@ -35,6 +35,12 @@ final class TorrentSearchModule implements Module
             'controllers'  => [
                 'torrent_search' => \AstrX\TorrentSearch\Controller\TorrentSearchController::class,
             ],
+            // The page sits under Search in the menu.
+            'nav_section'  => ['torrent_search' => 'site_search'],
+            // A tab on the site's Search page.
+            'extensions'   => [
+                \AstrX\Search\Tab\SearchTab::class => [\AstrX\TorrentSearch\TorrentSearchTab::class],
+            ],
             'teardown'     => 'torrentsearch.down.sql',
             // Templates, translations and default config (see docs/MODULES.md).
             'resources'    => 'resources',
